@@ -1,0 +1,68 @@
+```ini
+#!name=Locket Gold VIP
+#!desc=Mở rộng các tính năng Locket Gold, Photobooth, Filter và Profile.
+#!author=AnhKhoa08 (@anhkhoa2728)
+#!icon=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Locket.png
+#!system=ios
+
+[Rule]
+# Locket - Chặn QUIC/UDP
+AND,((DOMAIN,api.locketcamera.com),(PROTOCOL,UDP)),REJECT
+AND,((DOMAIN-SUFFIX,locketcamera.com),(PROTOCOL,UDP)),REJECT
+
+# RevenueCat & Firebase - Chặn QUIC/UDP
+AND,((DOMAIN,firebaseremoteconfig.googleapis.com),(PROTOCOL,UDP)),REJECT
+AND,((DOMAIN,api.revenuecat.com),(PROTOCOL,UDP)),REJECT
+
+[Header Rewrite]
+# RevenueCat - Xóa Cache / ETag
+^https?:\/\/api\.revenuecat\.com\/.+\/(receipts|subscribers) header-del x-revenuecat-etag
+^https?:\/\/api\.revenuecat\.com\/.+\/(receipts|subscribers) header-del X-RevenueCat-ETag
+^https?:\/\/api\.revenuecat\.com\/.+\/(receipts|subscribers) header-del if-none-match
+^https?:\/\/api\.revenuecat\.com\/.+\/(receipts|subscribers) header-del If-None-Match
+^https?:\/\/api\.revenuecat\.com\/.+\/(receipts|subscribers) header-del if-modified-since
+^https?:\/\/api\.revenuecat\.com\/.+\/(receipts|subscribers) header-del If-Modified-Since
+
+# Firebase Remote Config - Xóa Cache / ETag
+^https?:\/\/firebaseremoteconfig\.googleapis\.com\/v1\/projects\/locket-4252a\/.+ header-del if-none-match
+^https?:\/\/firebaseremoteconfig\.googleapis\.com\/v1\/projects\/locket-4252a\/.+ header-del If-None-Match
+^https?:\/\/firebaseremoteconfig\.googleapis\.com\/v1\/projects\/locket-4252a\/.+ header-del if-modified-since
+^https?:\/\/firebaseremoteconfig\.googleapis\.com\/v1\/projects\/locket-4252a\/.+ header-del If-Modified-Since
+^https?:\/\/firebaseremoteconfig\.googleapis\.com\/v1\/projects\/locket-4252a\/.+ header-del x-goog-if-none-match
+
+# Locket Camera API - Xóa Cache / ETag
+^https?:\/\/api\.locketcamera\.com\/.+ header-del if-none-match
+^https?:\/\/api\.locketcamera\.com\/.+ header-del If-None-Match
+^https?:\/\/api\.locketcamera\.com\/.+ header-del if-modified-since
+^https?:\/\/api\.locketcamera\.com\/.+ header-del If-Modified-Since
+
+[Script]
+# Locket Gold - Xóa Header RevenueCat
+deleteHeader_RC = type=http-request,pattern=^https?:\/\/api\.revenuecat\.com\/.+\/(receipts|subscribers),script-path=https://raw.githubusercontent.com/Khoa2728/locket_gold/refs/heads/main/deleteHeader.js,timeout=60
+
+# Locket Gold - Xóa Header Firebase
+deleteHeader_Firebase = type=http-request,pattern=^https?:\/\/firebaseremoteconfig\.googleapis\.com\/v1\/projects\/locket-4252a\/.+,script-path=https://raw.githubusercontent.com/Khoa2728/locket_gold/refs/heads/main/deleteHeader.js,timeout=60
+
+# Locket Gold - RevenueCat
+revenuecat = type=http-response,pattern=^https?:\/\/api\.revenuecat\.com\/.+\/(receipts|subscribers),script-path=https://raw.githubusercontent.com/Khoa2728/locket_gold/refs/heads/main/Locket_anhkhoa08.js,requires-body=true,max-size=-1,timeout=60
+
+# Locket Gold - Firebase Remote Config
+locket_rc = type=http-response,pattern=^https:\/\/firebaseremoteconfig\.googleapis\.com\/v1\/projects\/locket-4252a\/.+,script-path=https://raw.githubusercontent.com/Khoa2728/locket_gold/refs/heads/main/Locket_Unlocked_Gold.js,requires-body=true,max-size=-1,timeout=60
+
+# Locket Photobooth
+locket_pb_req = type=http-request,pattern=^https?:\/\/us-central1-locket-4252a\.cloudfunctions\.net\/generateFilteredImage,script-path=https://raw.githubusercontent.com/Khoa2728/locket_gold/refs/heads/main/Locket_Photobooth.js,requires-body=true,max-size=-1,timeout=60
+
+locket_pb_res = type=http-response,pattern=^https?:\/\/us-central1-locket-4252a\.cloudfunctions\.net\/generateFilteredImage,script-path=https://raw.githubusercontent.com/Khoa2728/locket_gold/refs/heads/main/Locket_Photobooth.js,requires-body=true,max-size=-1,timeout=60
+
+# Locket Profile & Filter Unlock
+locket_change_profile = type=http-request,pattern=^https:\/\/api\.locketcamera\.com\/changeProfileInfo,script-path=https://raw.githubusercontent.com/Khoa2728/locket_gold/refs/heads/main/locket_filter_unlock.js?v=20261106_01,timeout=60
+
+locket_filter_resp = type=http-response,pattern=^https?:\/\/api\.locketcamera\.com\/.+,requires-body=true,max-size=-1,script-path=https://raw.githubusercontent.com/Khoa2728/locket_gold/refs/heads/main/locket_filter_unlock.js?v=20261106_01,timeout=60
+
+[Host]
+us-central1-locket-4252a.cloudfunctions.net = 180.93.61.146
+firebaseremoteconfigrealtime.googleapis.com = 0.0.0.0
+
+[MITM]
+hostname = %APPEND% api.revenuecat.com, firebaseremoteconfig.googleapis.com, api.locketcamera.com, *.locketcamera.com, us-central1-locket-4252a.cloudfunctions.net
+```
